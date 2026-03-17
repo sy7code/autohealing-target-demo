@@ -1,0 +1,26 @@
+name: Notify Auto-Healing Backend
+
+on:
+  push:
+    branches:
+      - '**'  # 모든 브랜치 푸시 시 트리거
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send webhook to auto-healing backend
+        run: |
+          curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "repository": {
+                "full_name": "${{ github.repository }}"
+              },
+              "after": "${{ github.sha }}",
+              "pusher": {
+                "name": "${{ github.actor }}"
+              },
+              "ref": "${{ github.ref }}"
+            }' \
+            https://autohealing-backend-prod-ayfbewftcxeycbbw.southeastasia-01.azurewebsites.net/api/webhook/github

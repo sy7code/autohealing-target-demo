@@ -10,7 +10,7 @@ import java.sql.Statement;
 public class VulnerableApp {
 
     // 1. 하드코딩된 민감 정보 (Snyk: High/Critical - Hardcoded Secret)
-    private static final String AWS_SECRET_KEY = "AEXAMPLE1234567890/EXAMPEY123456";
+    private static final String AWS_SECRET_KEY = "AE34567890/EXAMPEY123456";
 
     public void processData(String userInput, String cmdInput) {
         try {

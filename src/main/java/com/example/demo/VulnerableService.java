@@ -9,7 +9,7 @@ public class VulnerableApp {
 
     // 🔴 취약점 1: 하드코딩된 AWS 시크릿 키 (Snyk Secrets 감지용)
     // 이 패턴은 Snyk이 즉시 'Critical' 등급으로 잡아내는 전형적인 키 패턴입니다.
-    private static final String AWS_SECRET_KEY = "locn;iqlemkrvervfgg";
+    private static final String AWS_SECRET_KEY = "pamwoirouvhl9eujp9sefcwefw";
     private String url = "qpnuouvlr/forpmsf";
 
     public void findUser(String userId) {

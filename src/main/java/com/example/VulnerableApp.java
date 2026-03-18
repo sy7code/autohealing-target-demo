@@ -1,44 +1,39 @@
-package com.example;
+package com.example.target;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.io.*;
+import java.sql.*;
+import java.net.*;
+import javax.servlet.http.*;
 
 public class VulnerableApp {
 
-    // 1. 하드코딩된 민감 정보 (Snyk: High/Critical - Hardcoded Secret)
-    private static final String AWS_SECRET_KEY = "AE34567890/PEY123456";
+    // 1. 하드코딩된 관리자 비밀번호 (Secrets)
+    private static final String ADMIN_PASSWORD = "SUPER_SECRET_PASSWORD_2026_!@#";
 
-    public void processData(String userInput, String cmdInput) {
-        try {
-            // 2. SQL 인젝션 취약점 (Snyk: High - SQL Injection)
-            // 사용자 입력을 검증 없이 쿼리에 직접 결합합니다.
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/db", "user", "pass");
-            Statement stmt = conn.createStatement();
-            String query = "SELECT * FROM users WHERE username = '" + userInput + "'";
-            ResultSet rs = stmt.executeQuery(query);
+    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        
+        // 2. Command Injection (명령어 주입)
+        // 사용자가 보낸 파일명으로 시스템 명령어를 직접 실행하는 매우 위험한 코드입니다.
+        String fileName = request.getParameter("file");
+        Runtime.getRuntime().exec("chmod 777 " + fileName);
 
-            // 3. 커맨드 인젝션 취약점 (Snyk: High/Critical - Command Injection)
-            // 사용자 입력이 OS 명령어로 그대로 들어갑니다.
-            String command = "ls -l " + cmdInput;
-            Process process = Runtime.getRuntime().exec(command);
-            
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
+        // 3. SQL Injection (SQL 주입) 
+        // 입력값을 검증 없이 쿼리에 그대로 이어붙였습니다.
+        String userId = request.getParameter("id");
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db", "user", "pass");
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT * FROM users WHERE id = '" + userId + "'");
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    public String getSecret() {
-        // 민감한 키를 로그나 리턴값으로 노출하는 행위
-        return AWS_SECRET_KEY;
+        // 4. Path Traversal (경로 조작)
+        // 사용자가 상위 디렉토리(../../)로 접근하여 민감한 파일을 읽을 수 있습니다.
+        File file = new File("/var/data/uploads/" + fileName);
+        FileInputStream fis = new FileInputStream(file);
+
+        // 5. SSRF (서버 측 요청 위조)
+        // 사용자가 제공한 URL로 서버가 직접 요청을 보냅니다. 내부망 공격에 취약합니다.
+        String targetUrl = request.getParameter("url");
+        URL url = new URL(targetUrl);
+        URLConnection urlConn = url.openConnection();
+        urlConn.connect();
     }
 }

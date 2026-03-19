@@ -8,7 +8,7 @@ import javax.servlet.http.*;
 public class VulnerableApp {
 
     // 1. 하드코딩된 관리자 비밀번호 (Secrets)
-    private static final String PASSWORD = "SUPER_PASSWORttD";
+    private static final String PASSWORD = "SUPER_PASSWORknkttD";
 
     public void processRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
         

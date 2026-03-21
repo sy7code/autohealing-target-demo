@@ -1,5 +1,4 @@
 name: Snyk Security Scan → Server
-
 on:
   push:
     branches:
@@ -7,32 +6,25 @@ on:
       - develop
       - 'feature/**'
   workflow_dispatch:
-
 jobs:
   snyk-scan:
     name: Snyk Scan & Report to Server
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
-
       - name: Install Snyk CLI
         run: npm install -g snyk
-
       - name: Authenticate with Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
-
       - name: Run Snyk scan
         run: |
-          snyk test --json-file-output=snyk-result.json --all-projects || true
+          snyk test --json-file-output=snyk-result.json --unmanaged || true
           echo "스캔 완료. 결과 파일 크기: $(wc -c < snyk-result.json) bytes"
-
       - name: Send scan results to backend server
         run: |
           BACKEND_URL="https://autohealing-backend-prod-ayfbewftcxeycbbw.southeastasia-01.azurewebsites.net"
           echo "서버로 결과 전송 중: ${BACKEND_URL}/api/webhook/snyk"
-
           HTTP_STATUS=$(curl -s -o curl-response.txt -w "%{http_code}" \
             -X POST \
             -H "Content-Type: application/json" \
@@ -43,16 +35,13 @@ jobs:
             --max-time 30 \
             --data @snyk-result.json \
             "${BACKEND_URL}/api/webhook/snyk") || true
-
           echo "서버 응답 코드: ${HTTP_STATUS}"
           cat curl-response.txt || true
-
           if [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "200" ]; then
             echo "✅ 서버 전송 성공 (status=${HTTP_STATUS})"
           else
             echo "⚠️ 서버 전송 실패 (status=${HTTP_STATUS})"
           fi
-
       - name: Upload scan results
         uses: actions/upload-artifact@v4
         if: always()
